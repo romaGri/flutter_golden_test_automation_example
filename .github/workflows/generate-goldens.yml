@@ -1,0 +1,182 @@
+name: Generate Golden Tests
+
+# Trigger: PR comment. Conditions:
+#  - comment is on a PR (not an issue)
+#  - comment body starts with /generate-goldens
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  generate-goldens:
+    if: >-
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '/generate-goldens')
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write          # push new branch with tests
+      pull-requests: write     # open a second PR
+      issues: write            # react to the trigger comment
+      id-token: write          # required by some versions of claude-code-action
+
+    steps:
+      # 1. Acknowledge the command — add a reaction to the comment.
+      #    The user immediately sees in the GitHub UI that the workflow started.
+      - name: React to trigger comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: rocket
+
+      # 2. Checkout the repo with full history —
+      #    we need tags and branch history to branch off the PR branch later.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 3. Switch to the PR branch that triggered us.
+      #    issue_comment payload doesn't include the branch name — fetch it via gh.
+      - name: Checkout PR branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh pr checkout "$PR_NUMBER"
+          echo "PR_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> "$GITHUB_ENV"
+          echo "Checked out PR #$PR_NUMBER (branch: $(git rev-parse --abbrev-ref HEAD))"
+
+      # 4. Install Flutter — needed so the agent can run
+      #    flutter pub get / flutter test --update-goldens.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          # In production, pin major+minor to prevent renderer drift:
+          # flutter-version: '3.24.x'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 5. Configure git identity — needed for commits the agent will make.
+      - name: Configure git
+        run: |
+          git config --global user.name "claude-goldens-bot"
+          git config --global user.email "claude-goldens-bot@users.noreply.github.com"
+
+      # 6. Run Claude as an agent. It will:
+      #    - find *_page.dart files without corresponding *_test.dart
+      #    - read the page and its BLoC, generate an alchemist test
+      #    - run flutter test --update-goldens
+      #    - create a new branch, commit, push, open a PR
+      #    - leave a comment in the original PR with a link
+      - name: Generate goldens with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Auth via Claude Code Pro OAuth (uses your subscription,
+          # no separate API billing). Alternative: anthropic_api_key
+          # if you're on an API plan; see the workflow README for details.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Allow the agent to use shell for git/gh operations.
+          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
+
+          prompt: |
+            You are an engineer adding missing golden tests to a Flutter project.
+            The project architecture and golden test conventions are described in `CLAUDE.md` —
+            read it FIRST before doing anything else.
+
+            ## Current run context
+
+            - You are on branch `${{ env.PR_BRANCH }}` (the branch for PR #${{ github.event.issue.number }}).
+            - You were triggered by a user typing `/generate-goldens` in a PR comment.
+            - Your goal: find pages without golden tests, generate the missing ones,
+              and open a SEPARATE PR with those tests targeting the current branch (not main!).
+
+            ## Algorithm
+
+            1. Read `CLAUDE.md` — it describes the project structure, the alchemist
+               golden test template, and the BLoC mock pattern.
+
+            2. Find all files matching `lib/**/*_page.dart`. These are the app pages.
+
+            3. For each page, check whether `test/pages/<basename>_test.dart` exists
+               (e.g. for `home_page.dart` look for `test/pages/home_page_test.dart`).
+               If the test already exists — skip that page.
+
+            4. For each page WITHOUT a test:
+               a. Read the page file.
+               b. Read the related BLoC files (`<feature>/bloc/<name>_bloc.dart`,
+                  `_state.dart`, `_event.dart`).
+               c. If `pubspec.yaml` doesn't yet have `bloc_test` and `mocktail` —
+                  add them to `dev_dependencies` and run `flutter pub get`.
+               d. Generate a golden test following the template from CLAUDE.md. The test must:
+                  - Use alchemist's `goldenTest()`.
+                  - Cover key BLoC states (at minimum Loading and Loaded;
+                    Error if it exists).
+                  - Cover both light AND dark themes as separate GoldenTestScenario entries.
+                  - For the Loaded state, use a MoonDay with a fixed date
+                    `DateTime(2025, 1, 6)` (known new moon, age ≈ 0).
+                  - Mock the BLoC via MockBloc / MockCubit from bloc_test.
+                  - Use the `pumpApp` helper if it exists in `test/helpers/`,
+                    otherwise wrap in a MaterialApp with the app theme.
+               e. Save the test to `test/pages/<basename>_test.dart`.
+
+            5. Once all tests are generated, run `flutter test --update-goldens`
+               to create the baseline PNG files. If a test fails for a reason you
+               can fix (typo, wrong import) — fix it and retry. If it fails for
+               architectural reasons — skip that page and mention it in the PR description.
+
+            6. Create a new branch:
+               `git checkout -b goldens/${{ env.PR_BRANCH }}`
+
+            7. Commit EVERYTHING you added/changed in one commit:
+               `git add test/ pubspec.yaml pubspec.lock`
+               `git commit -m "test: auto-generate golden tests for missing pages"`
+
+            8. Push the branch:
+               `git push origin goldens/${{ env.PR_BRANCH }}`
+
+            9. Open a PR from `goldens/${{ env.PR_BRANCH }}` into `${{ env.PR_BRANCH }}`
+               (NOT into main!). Use `gh pr create`:
+               ```
+               gh pr create \
+                 --base "${{ env.PR_BRANCH }}" \
+                 --head "goldens/${{ env.PR_BRANCH }}" \
+                 --title "test: auto-generated golden tests" \
+                 --body "<detailed description — see below>"
+               ```
+               The PR description must include:
+               - Which test files were added (list of paths).
+               - Which pages were skipped and why (if any).
+               - A note that baseline PNG files were generated on a Linux runner
+                 and may differ from local macOS renders.
+
+            10. In the original PR #${{ github.event.issue.number }}, leave
+                a comment with a link to the newly created PR:
+                ```
+                gh pr comment ${{ github.event.issue.number }} \
+                  --body "Generated golden tests in #<new PR number>."
+                ```
+
+            ## Constraints
+
+            - Do NOT modify files in `lib/` — only create new files in `test/`.
+            - If a page constructor requires parameters you cannot reasonably mock
+              (e.g. complex callbacks or large models) — skip it and mention it in the PR description.
+            - After generating tests, run `dart format test/` for consistent style.
+            - Do NOT run `flutter test` without `--update-goldens` (golden tests will
+              fail on the first run because there are no baselines yet — this is expected).
+
+      # 7. If any step fails — react with "–" on the comment
+      #    so the user can see it immediately.
+      - name: React on failure
+        if: failure()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: confused

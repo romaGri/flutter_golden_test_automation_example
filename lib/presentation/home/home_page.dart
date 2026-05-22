@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/di/injection.dart';
+import '../../core/l10n/app_localizations_extension.dart';
 import '../../core/router/app_router.dart';
-import '../../domain/entities/moon_phase_extensions.dart';
+import '../l10n/moon_phase_l10n.dart';
 import '../widgets/moon_phase_icon.dart';
 import 'bloc/home_bloc.dart';
 import 'bloc/home_event.dart';
@@ -29,16 +30,16 @@ class _HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Moon Calendar'),
+        title: Text(context.S.pageHomeTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month),
-            tooltip: 'Calendar',
+            tooltip: context.S.tooltipCalendar,
             onPressed: () => context.go(AppRoutes.calendar),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
+            tooltip: context.S.tooltipSettings,
             onPressed: () => context.go(AppRoutes.settings),
           ),
         ],
@@ -58,23 +59,27 @@ class _HomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  moonDay.phase.label,
+                  moonDay.phase.localizedLabel(context),
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Day ${moonDay.ageInDays.floor() + 1} of 30',
+                  context.S.homeDayOf30(moonDay.ageInDays.floor() + 1),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Illumination: ${(moonDay.illumination * 100).round()}%',
+                  context.S.homeIllumination(
+                    (moonDay.illumination * 100).round(),
+                  ),
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ],
             ),
           ),
-          HomeError(:final message) => Center(child: Text('Error: $message')),
+          HomeError(:final message) => Center(
+            child: Text(context.S.errorMessage(message)),
+          ),
         },
       ),
     );
