@@ -54,8 +54,9 @@ void main() {
       pumpBeforeTest: (tester) => tester.pump(),
       builder: () {
         when(() => mockBloc.state).thenReturn(const HomeLoading());
-        when(() => mockBloc.stream)
-            .thenAnswer((_) => Stream<HomeState>.empty());
+        when(
+          () => mockBloc.stream,
+        ).thenAnswer((_) => Stream<HomeState>.empty());
         return GoldenTestGroup(
           children: [
             GoldenTestScenario(
@@ -76,8 +77,9 @@ void main() {
       fileName: 'pages/home_page_loaded',
       builder: () {
         when(() => mockBloc.state).thenReturn(HomeLoaded(moonDay));
-        when(() => mockBloc.stream)
-            .thenAnswer((_) => Stream.value(HomeLoaded(moonDay)));
+        when(
+          () => mockBloc.stream,
+        ).thenAnswer((_) => Stream.value(HomeLoaded(moonDay)));
         return GoldenTestGroup(
           children: [
             GoldenTestScenario(
@@ -97,10 +99,12 @@ void main() {
       'renders error state',
       fileName: 'pages/home_page_error',
       builder: () {
-        when(() => mockBloc.state)
-            .thenReturn(const HomeError('Something went wrong'));
-        when(() => mockBloc.stream)
-            .thenAnswer((_) => Stream<HomeState>.empty());
+        when(
+          () => mockBloc.state,
+        ).thenReturn(const HomeError('Something went wrong'));
+        when(
+          () => mockBloc.stream,
+        ).thenAnswer((_) => Stream<HomeState>.empty());
         return GoldenTestGroup(
           children: [
             GoldenTestScenario(
