@@ -38,6 +38,11 @@ class _HomeView extends StatelessWidget {
             onPressed: () => context.go(AppRoutes.calendar),
           ),
           IconButton(
+            icon: const Icon(Icons.lightbulb_outline),
+            tooltip: 'Moon Tips',
+            onPressed: () => context.go(AppRoutes.moonTips),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             tooltip: context.S.tooltipSettings,
             onPressed: () => context.go(AppRoutes.settings),
