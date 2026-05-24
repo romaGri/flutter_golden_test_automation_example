@@ -20,6 +20,24 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+        {
+            "name": "Update Goldens",
+            "request": "launch",
+            "type": "dart",
+            "presentation": {
+                "hidden": false,
+                "group": "Test",
+            },
+            "codeLens": {
+                "for": [
+                    "run-test",
+                    "run-test-file"
+                ]
+            },
+            "args": [
+                "--update-goldens"
+            ]
         }
     ]
 }

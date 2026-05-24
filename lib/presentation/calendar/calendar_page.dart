@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/di/injection.dart';
+import '../../core/l10n/app_localizations_extension.dart';
 import '../../core/router/app_router.dart';
 import '../../domain/entities/moon_calendar.dart';
 import '../../domain/entities/moon_day.dart';
@@ -18,8 +19,9 @@ class CalendarPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     return BlocProvider(
-      create: (_) => sl<CalendarBloc>()
-        ..add(CalendarMonthLoadRequested(year: now.year, month: now.month)),
+      create: (_) =>
+          sl<CalendarBloc>()
+            ..add(CalendarMonthLoadRequested(year: now.year, month: now.month)),
       child: const _CalendarView(),
     );
   }
@@ -28,26 +30,34 @@ class CalendarPage extends StatelessWidget {
 class _CalendarView extends StatelessWidget {
   const _CalendarView();
 
-  static const _weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.S;
+    final weekdays = [
+      l10n.calendarWeekdayMon,
+      l10n.calendarWeekdayTue,
+      l10n.calendarWeekdayWed,
+      l10n.calendarWeekdayThu,
+      l10n.calendarWeekdayFri,
+      l10n.calendarWeekdaySat,
+      l10n.calendarWeekdaySun,
+    ];
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendar')),
+      appBar: AppBar(title: Text(l10n.pageCalendarTitle)),
       body: BlocBuilder<CalendarBloc, CalendarState>(
         builder: (context, state) => switch (state) {
-          CalendarInitial() || CalendarLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
+          CalendarInitial() ||
+          CalendarLoading() => const Center(child: CircularProgressIndicator()),
           CalendarLoaded(:final calendar) => Column(
-              children: [
-                _MonthHeader(calendar: calendar),
-                _WeekdayRow(weekdays: _weekdays),
-                Expanded(child: _CalendarGrid(calendar: calendar)),
-              ],
-            ),
-          CalendarError(:final message) =>
-            Center(child: Text('Error: $message')),
+            children: [
+              _MonthHeader(calendar: calendar),
+              _WeekdayRow(weekdays: weekdays),
+              Expanded(child: _CalendarGrid(calendar: calendar)),
+            ],
+          ),
+          CalendarError(:final message) => Center(
+            child: Text(context.S.errorMessage(message)),
+          ),
         },
       ),
     );
@@ -59,10 +69,23 @@ class _MonthHeader extends StatelessWidget {
 
   const _MonthHeader({required this.calendar});
 
-  static const _monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
+  String _monthName(BuildContext context, int month) {
+    final l10n = context.S;
+    return [
+      l10n.calendarMonthJanuary,
+      l10n.calendarMonthFebruary,
+      l10n.calendarMonthMarch,
+      l10n.calendarMonthApril,
+      l10n.calendarMonthMay,
+      l10n.calendarMonthJune,
+      l10n.calendarMonthJuly,
+      l10n.calendarMonthAugust,
+      l10n.calendarMonthSeptember,
+      l10n.calendarMonthOctober,
+      l10n.calendarMonthNovember,
+      l10n.calendarMonthDecember,
+    ][month - 1];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,19 +96,19 @@ class _MonthHeader extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
-            onPressed: () => context
-                .read<CalendarBloc>()
-                .add(const CalendarPreviousMonthRequested()),
+            onPressed: () => context.read<CalendarBloc>().add(
+              const CalendarPreviousMonthRequested(),
+            ),
           ),
           Text(
-            '${_monthNames[calendar.month - 1]} ${calendar.year}',
+            '${_monthName(context, calendar.month)} ${calendar.year}',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            onPressed: () => context
-                .read<CalendarBloc>()
-                .add(const CalendarNextMonthRequested()),
+            onPressed: () => context.read<CalendarBloc>().add(
+              const CalendarNextMonthRequested(),
+            ),
           ),
         ],
       ),
@@ -108,8 +131,8 @@ class _WeekdayRow extends StatelessWidget {
                 child: Text(
                   d,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -185,12 +208,11 @@ class _DayCell extends StatelessWidget {
                 child: Text(
                   '${moonDay.date.day}',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: isToday
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : null,
-                        fontWeight:
-                            isToday ? FontWeight.bold : FontWeight.normal,
-                      ),
+                    color: isToday
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : null,
+                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                  ),
                 ),
               ),
             ),

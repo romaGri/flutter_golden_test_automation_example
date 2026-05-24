@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   go_router: ^14.0.0
   get_it: ^8.0.0
   flutter_bloc: ^9.0.0
@@ -24,3 +27,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

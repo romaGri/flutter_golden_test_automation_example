@@ -8,6 +8,7 @@ import 'package:flutter_golden_test_automation_example/core/di/injection.dart';
 import 'package:flutter_golden_test_automation_example/core/theme/app_theme.dart';
 import 'package:flutter_golden_test_automation_example/domain/entities/moon_day.dart';
 import 'package:flutter_golden_test_automation_example/domain/entities/moon_phase.dart';
+import 'package:flutter_golden_test_automation_example/l10n/app_localizations.dart';
 import 'package:flutter_golden_test_automation_example/presentation/home/bloc/home_bloc.dart';
 import 'package:flutter_golden_test_automation_example/presentation/home/bloc/home_event.dart';
 import 'package:flutter_golden_test_automation_example/presentation/home/bloc/home_state.dart';
@@ -28,6 +29,8 @@ void main() {
     height: 844,
     child: MaterialApp(
       theme: theme ?? AppTheme.light,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: child,
     ),
   );
@@ -51,8 +54,9 @@ void main() {
       pumpBeforeTest: (tester) => tester.pump(),
       builder: () {
         when(() => mockBloc.state).thenReturn(const HomeLoading());
-        when(() => mockBloc.stream)
-            .thenAnswer((_) => Stream<HomeState>.empty());
+        when(
+          () => mockBloc.stream,
+        ).thenAnswer((_) => Stream<HomeState>.empty());
         return GoldenTestGroup(
           children: [
             GoldenTestScenario(
@@ -73,8 +77,9 @@ void main() {
       fileName: 'pages/home_page_loaded',
       builder: () {
         when(() => mockBloc.state).thenReturn(HomeLoaded(moonDay));
-        when(() => mockBloc.stream)
-            .thenAnswer((_) => Stream.value(HomeLoaded(moonDay)));
+        when(
+          () => mockBloc.stream,
+        ).thenAnswer((_) => Stream.value(HomeLoaded(moonDay)));
         return GoldenTestGroup(
           children: [
             GoldenTestScenario(
@@ -94,10 +99,12 @@ void main() {
       'renders error state',
       fileName: 'pages/home_page_error',
       builder: () {
-        when(() => mockBloc.state)
-            .thenReturn(const HomeError('Something went wrong'));
-        when(() => mockBloc.stream)
-            .thenAnswer((_) => Stream<HomeState>.empty());
+        when(
+          () => mockBloc.state,
+        ).thenReturn(const HomeError('Something went wrong'));
+        when(
+          () => mockBloc.stream,
+        ).thenAnswer((_) => Stream<HomeState>.empty());
         return GoldenTestGroup(
           children: [
             GoldenTestScenario(

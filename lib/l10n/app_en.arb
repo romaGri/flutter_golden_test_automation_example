@@ -1,0 +1,82 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Moon Calendar",
+
+  "pageHomeTitle": "Moon Calendar",
+  "pageCalendarTitle": "Calendar",
+  "pageSettingsTitle": "Settings",
+
+  "tooltipCalendar": "Calendar",
+  "tooltipSettings": "Settings",
+
+  "settingsDarkMode": "Dark mode",
+  "settingsDarkModeSubtitle": "Switch between light and dark theme",
+
+  "homeDayOf30": "Day {day} of 30",
+  "@homeDayOf30": {
+    "placeholders": {
+      "day": { "type": "int" }
+    }
+  },
+  "homeIllumination": "Illumination: {percent}%",
+  "@homeIllumination": {
+    "placeholders": {
+      "percent": { "type": "int" }
+    }
+  },
+
+  "errorMessage": "Error: {message}",
+  "@errorMessage": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+
+  "dayDetailLabelPhase": "Phase",
+  "dayDetailLabelIllumination": "Illumination",
+  "dayDetailLabelMoonAge": "Moon age",
+  "dayDetailLabelLunarDay": "Lunar day",
+  "dayDetailMoonAgeDays": "{days} days",
+  "@dayDetailMoonAgeDays": {
+    "placeholders": {
+      "days": { "type": "String" }
+    }
+  },
+  "dayDetailLunarDayOf30": "{day} of 30",
+  "@dayDetailLunarDayOf30": {
+    "placeholders": {
+      "day": { "type": "int" }
+    }
+  },
+
+  "calendarMonthJanuary": "January",
+  "calendarMonthFebruary": "February",
+  "calendarMonthMarch": "March",
+  "calendarMonthApril": "April",
+  "calendarMonthMay": "May",
+  "calendarMonthJune": "June",
+  "calendarMonthJuly": "July",
+  "calendarMonthAugust": "August",
+  "calendarMonthSeptember": "September",
+  "calendarMonthOctober": "October",
+  "calendarMonthNovember": "November",
+  "calendarMonthDecember": "December",
+
+  "calendarWeekdayMon": "Mo",
+  "calendarWeekdayTue": "Tu",
+  "calendarWeekdayWed": "We",
+  "calendarWeekdayThu": "Th",
+  "calendarWeekdayFri": "Fr",
+  "calendarWeekdaySat": "Sa",
+  "calendarWeekdaySun": "Su",
+
+  "moonPhaseNewMoon": "New Moon",
+  "moonPhaseWaxingCrescent": "Waxing Crescent",
+  "moonPhaseFirstQuarter": "First Quarter",
+  "moonPhaseWaxingGibbous": "Waxing Gibbous",
+  "moonPhaseFullMoon": "Full Moon",
+  "moonPhaseWaningGibbous": "Waning Gibbous",
+  "moonPhaseLastQuarter": "Last Quarter",
+  "moonPhaseWaningCrescent": "Waning Crescent"
+}
