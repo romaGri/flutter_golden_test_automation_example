@@ -73,6 +73,8 @@ jobs:
       #    - create a new branch, commit, push, open a PR
       #    - leave a comment in the original PR with a link
       - name: Generate goldens with Claude
+        timeout-minutes: 30
+        
         uses: anthropics/claude-code-action@v1
         with:
           # Auth via Claude Code Pro OAuth (uses your subscription,
@@ -81,10 +83,9 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
-          # Allow the agent to use shell for git/gh operations.
-          allowed_tools: "Bash,Read,Write,Edit,Glob,Grep"
-
+          
+          show_full_output: true
+          claude_args: "--allowedTools Bash,Read,Write,Edit,Glob,Grep"
           prompt: |
             You are an engineer adding missing golden tests to a Flutter project.
             The project architecture and golden test conventions are described in `CLAUDE.md` —
@@ -124,6 +125,11 @@ jobs:
                   - Mock the BLoC via MockBloc / MockCubit from bloc_test.
                   - Use the `pumpApp` helper if it exists in `test/helpers/`,
                     otherwise wrap in a MaterialApp with the app theme.
+                  - For any test that renders an indefinitely-animating widget
+                    (CircularProgressIndicator, loading spinners, etc.) add
+                    `pumpBeforeTest: (tester) => tester.pump()` to that
+                    `goldenTest()` call — otherwise `pumpAndSettle` will
+                    time out and hang the workflow.
                e. Save the test to `test/pages/<basename>_test.dart`.
 
             5. Once all tests are generated, run `flutter test --update-goldens`
