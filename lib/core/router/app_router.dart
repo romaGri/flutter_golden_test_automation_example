@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../presentation/calendar/calendar_page.dart';
 import '../../presentation/day_detail/day_detail_page.dart';
 import '../../presentation/home/home_page.dart';
+import '../../presentation/moon_tips/moon_tips_page.dart';
 import '../../presentation/settings/settings_page.dart';
 
 abstract class AppRoutes {
@@ -10,6 +11,7 @@ abstract class AppRoutes {
   static const calendar = '/calendar';
   static const dayDetail = '/day/:date';
   static const settings = '/settings';
+  static const moonTips = '/tips';
 
   static String dayDetailPath(DateTime date) =>
       '/day/${date.toIso8601String().split('T').first}';
@@ -36,6 +38,10 @@ final appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.settings,
           builder: (_, _) => const SettingsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.moonTips,
+          builder: (_, _) => const MoonTipsPage(),
         ),
       ],
     ),
