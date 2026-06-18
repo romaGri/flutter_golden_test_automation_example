@@ -9,6 +9,7 @@ import '../../domain/usecases/get_today_moon.dart';
 import '../../presentation/calendar/bloc/calendar_bloc.dart';
 import '../../presentation/day_detail/bloc/day_detail_bloc.dart';
 import '../../presentation/home/bloc/home_bloc.dart';
+import '../../presentation/moon_rituals/cubit/moon_rituals_cubit.dart';
 import '../../presentation/moon_tips/cubit/moon_tips_cubit.dart';
 import '../../presentation/settings/cubit/settings_cubit.dart';
 
@@ -32,6 +33,7 @@ void configureDependencies() {
 
   // BLoCs / Cubits — factory so each page gets a fresh instance
   sl.registerFactory(() => HomeBloc(sl()));
+  sl.registerFactory(() => MoonRitualsCubit());
   sl.registerFactory(() => MoonTipsCubit());
   sl.registerFactory(() => CalendarBloc(sl()));
   sl.registerFactory(() => DayDetailBloc(sl()));
