@@ -37,8 +37,9 @@ class _MoonTipsView extends StatelessWidget {
               title: Text(tips[index]),
             ),
           ),
-          MoonTipsError(:final message) =>
-            Center(child: Text('Error: $message')),
+          MoonTipsError(:final message) => Center(
+            child: Text('Error: $message'),
+          ),
         },
       ),
     );
